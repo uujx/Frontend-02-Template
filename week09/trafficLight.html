@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Traffic Light</title>
+  </head>
+
+  <style>
+    #light {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+    }
+
+    .red {
+      background-color: red;
+    }
+
+    .yellow {
+      background-color: yellow;
+    }
+
+    .green {
+      background-color: green;
+    }
+  </style>
+  <body>
+    <div id="light"></div>
+
+    <script>
+      const el = document.getElementById('light')
+
+      function changeLight(color, delay) {
+        el.classList.add(color)
+        return new Promise((res, rej) => {
+          setTimeout(() => {
+            res()
+            el.classList.remove(color)
+          }, delay)
+        })
+      }
+
+      async function begin() {
+        while (true) {
+          await changeLight('red', 2000)
+          await changeLight('yellow', 1000)
+          await changeLight('green', 2000)
+        }
+      }
+
+      begin()
+    </script>
+  </body>
+</html>

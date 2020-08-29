@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+
+    <style>
+      .cell {
+        width: 100px;
+        height: 100px;
+        background-color: green;
+        display: inline-block;
+        border: 1px solid white;
+        vertical-align: middle;
+        line-height: 100px;
+        font-size: 50px;
+        text-align: center;
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="board"></div>
+
+    <script>
+      let pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+      let flip = 1
+
+      function show() {
+        let board = document.getElementById('board')
+
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            let cell = document.createElement('div')
+            cell.classList.add('cell')
+            cell.innerText =
+              pattern[i * 3 + j] === 2
+                ? 'x'
+                : pattern[i * 3 + j] === 1
+                ? 'o'
+                : ''
+
+            cell.addEventListener('click', (e) => clickHandler(e, i, j))
+            board.appendChild(cell)
+          }
+          board.appendChild(document.createElement('br'))
+        }
+      }
+
+      function clickHandler(e, i, j) {
+        if (pattern[i * 3 + j] !== 0) {
+          return
+        }
+
+        pattern[i * 3 + j] = flip
+        e.target.innerText = flip === 1 ? 'x' : 'o'
+
+        if (checkWinning(pattern, flip)) {
+          alert(flip === 1 ? 'X is winner!' : 'O is winner!')
+        }
+
+        // smart!
+        flip = 3 - flip
+
+        console.log(bestChoice(pattern, flip))
+
+        if (willWin(pattern, flip)) {
+          console.log(flip === 1 ? 'X will win!' : 'O will win!')
+        }
+      }
+
+      function checkWinning(pattern, flip) {
+        // 只有三种情况获胜：三横，三纵，两斜
+        // 检查是否和当前flip相等，因为不可能放了一个x之后o赢了
+        // 使用{}来生成块作用域，反复声明win变量
+
+        // 横行判断
+        {
+          for (let i = 0; i < 3; i++) {
+            let win = true
+            for (let j = 0; j < 3; j++) {
+              if (pattern[i * 3 + j] !== flip) {
+                win = false
+              }
+            }
+            if (win) return true
+          }
+        }
+        // 纵列判断
+        {
+          for (let i = 0; i < 3; i++) {
+            let win = true
+            for (let j = 0; j < 3; j++) {
+              if (pattern[j * 3 + i] !== flip) {
+                win = false
+              }
+            }
+            if (win) return true
+          }
+        }
+        // 主对角线判断
+        {
+          let win = true
+          for (let i = 0; i < 3; i++) {
+            if (pattern[i * 3 + i] !== flip) {
+              win = false
+            }
+          }
+          if (win) return true
+        }
+        // 副对角线判断
+        {
+          let win = true
+          for (let i = 0; i < 3; i++) {
+            if (pattern[i * 3 + 2 - i] !== flip) {
+              win = false
+            }
+          }
+          if (win) return true
+        }
+      }
+
+      function willWin(pattern, flip) {
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            if (pattern[i * 3 + j]) continue
+
+            let tmp = clone(pattern)
+            tmp[i * 3 + j] = flip
+            if (checkWinning(tmp, flip)) {
+              return [i, j]
+            }
+          }
+        }
+        return null
+      }
+
+      function clone(pattern) {
+        return Object.create(pattern)
+      }
+
+      function bestChoice(pattern, flip) {
+        let point
+        if ((point = willWin(pattern, flip))) {
+          return {
+            point,
+            result: 1
+          }
+        }
+
+        let result = -1
+        outer: for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            if (pattern[i * 3 + j]) continue
+
+            let tmp = clone(pattern)
+            tmp[i * 3 + j] = flip
+            let opp = bestChoice(tmp, 3 - flip)
+
+            if (-opp.result >= result) {
+              result = -opp.result
+              point = [i, j]
+            }
+
+            // win-lost
+            if (result === 1) {
+              break outer
+            }
+          }
+        }
+
+        return {
+          point,
+          result: point ? result : 0
+        }
+      }
+
+      show()
+    </script>
+  </body>
+</html>

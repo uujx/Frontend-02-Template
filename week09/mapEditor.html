@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Editor</title>
+    <style>
+      .cell {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: gray;
+        border-bottom: 1px solid white;
+        border-right: 1px solid white;
+        vertical-align: middle;
+      }
+
+      #container {
+        width: 701px;
+        font-size: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+    <button onclick="localStorage.removeItem('map')">reset</button>
+
+    <script>
+      let map = localStorage['map']
+        ? JSON.parse(localStorage['map'])
+        : Array(10000).fill(0)
+
+      const container = document.getElementById('container')
+      let mousedown = false,
+        clear = false
+
+      container.addEventListener('mousedown', (e) => {
+        mousedown = true
+        if (e.which === 3) {
+          clear = true
+        }
+      })
+
+      container.addEventListener('mouseup', (e) => {
+        mousedown = false
+        if (e.which === 3) {
+          clear = false
+        }
+      })
+
+      container.addEventListener('contextmenu', (e) => e.preventDefault())
+
+      for (let i = 0; i < 100; i++) {
+        for (let j = 0; j < 100; j++) {
+          const cell = document.createElement('div')
+          cell.classList.add('cell')
+
+          if (map[100 * i + j] === 1) {
+            cell.style.backgroundColor = 'black'
+          }
+
+          cell.addEventListener('mousemove', () => {
+            if (mousedown) {
+              if (clear) {
+                cell.style.backgroundColor = ''
+                map[100 * i + j] = 0
+              } else {
+                cell.style.backgroundColor = 'black'
+                map[100 * i + j] = 1
+              }
+            }
+          })
+
+          container.appendChild(cell)
+        }
+      }
+
+      class Sorted {
+        constructor(data, compare) {
+          this.data = data.slice()
+          this.compare = compare || ((a, b) => a - b)
+        }
+
+        take() {
+          if (!this.data.length) return
+
+          let min = this.data[0],
+            minIndex = 0
+          for (let i = 1; i < this.data.length; i++) {
+            if (this.compare(this.data[i], min) < 0) {
+              min = this.data[i]
+              minIndex = i
+            }
+          }
+
+          this.data[minIndex] = this.data[this.data.length - 1]
+          this.data.pop()
+
+          return min
+        }
+
+        give(v) {
+          this.data.push(v)
+        }
+
+        getLength() {
+          return this.data.length
+        }
+      }
+
+      async function path(map, start, end) {
+        const table = Object.create(map)
+        const queue = new Sorted([start], (a, b) => distance(a) - distance(b))
+
+        while (queue.getLength()) {
+          let [x, y] = queue.take()
+
+          if (x === end[0] && y === end[1]) {
+            container.children[x * 100 + y].style.backgroundColor = 'red'
+
+            let path = []
+
+            while (x !== start[0] || y !== start[1]) {
+              path.push(map[x * 100 + y])
+              ;[x, y] = table[x * 100 + y]
+              container.children[x * 100 + y].style.backgroundColor = 'purple'
+            }
+
+            return path
+          }
+
+          await insert(x - 1, y, [x, y])
+          await insert(x + 1, y, [x, y])
+          await insert(x, y - 1, [x, y])
+          await insert(x, y + 1, [x, y])
+        }
+
+        return null
+
+        async function insert(x, y, prev) {
+          if (x < 0 || x >= 100 || y < 0 || y >= 100) {
+            return
+          }
+          if (table[x * 100 + y]) {
+            return
+          }
+
+          await sleep(5)
+          container.children[x * 100 + y].style.backgroundColor = 'lightgreen'
+
+          table[x * 100 + y] = prev
+          queue.give([x, y])
+        }
+
+        function distance(p) {
+          return (p[0] - end[0]) ** 2 + (p[1] - end[1]) ** 2
+        }
+      }
+
+      function sleep(t) {
+        return new Promise((res, rej) => {
+          setTimeout(res, t)
+        })
+      }
+    </script>
+  </body>
+</html>
