@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { enableGesture } from './gesture.js'
+
+      enableGesture(document.documentElement)
+
+      document.documentElement.addEventListener('tap', () => console.log('tap'))
+
+      document.documentElement.addEventListener('press', () => console.log('press'))
+
+      document.documentElement.addEventListener('pan', () => console.log('pan'))
+
+      document.documentElement.addEventListener('panend', () => console.log('panend'))
+
+      document.documentElement.addEventListener('pressend', () => console.log('pressend'))
+
+      document.documentElement.addEventListener('flick', () => console.log('flick'))
+
+      document.documentElement.addEventListener('cancel', () => console.log('cancel'))
+    </script>
+  </body>
+</html>
